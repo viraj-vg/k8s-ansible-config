@@ -45,3 +45,6 @@ Paste the result into `inventory/group_vars/all.yml` and run with `--ask-vault-p
 ## Notes
 - Turn off the Helm chart's own node-exporter (`nodeExporter.enabled: false`) to avoid a port 9100 clash.
 - No UFW: security groups handle network access, a host deny-all rule can break kubelet/pod traffic.
+
+EKS: SSM connection, tag-based dynamic inventory, no host firewall,
+containerd/kubelet verification, and monitoring roles that render config for in-cluster Prometheus.
