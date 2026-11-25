@@ -30,3 +30,14 @@ spec:
             severity: warning
           annotations:
             summary: "Available node memory is below 10% on {{ '{{' }} $labels.instance {{ '}}' }}"
+        - alert: PodMemoryHigh
+          expr: |
+            max by (namespace, pod, container) (container_memory_working_set_bytes{namespace=~"staging|production", container!="", container!="POD"})
+            /
+            max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace=~"staging|production", resource="memory"})
+            > 0.8
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ '{{' }} $labels.pod {{ '}}' }} is using over 80% of its memory limit"
