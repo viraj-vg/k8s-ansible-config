@@ -53,5 +53,3 @@ containerd/kubelet verification, and monitoring roles that render config for in-
 Ansible roles for the EC2 worker nodes:
 node-setup, node-exporter, prometheus-config, alertmanager-config.
 
-Roles are added step by step.
->>>>>>> d32697b5157c9acf96046cc47cd3deb388466ef6
