@@ -1,0 +1,25 @@
+---
+- name: Create rendered output directory
+  ansible.builtin.file:
+    path: "{{ rendered_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Render Prometheus extra scrape config for node-exporter targets
+  ansible.builtin.template:
+    src: node-scrape-configs.yml.j2
+    dest: "{{ rendered_dir }}/node-scrape-configs.yml"
+    mode: "0600"
+  register: prometheus_config_rendered
+
+- name: Show targets that will be scraped
+  ansible.builtin.debug:
+    msg: "{{ groups.get('kubernetes_nodes', []) | map('extract', hostvars, 'private_ip_address') | list }}"
+
+- name: Apply scrape config as a Secret (additionalScrapeConfigs)
+  ansible.builtin.shell: |
+    kubectl -n {{ monitoring_namespace }} create secret generic additional-scrape-configs \
+      --from-file=node-scrape-configs.yml={{ rendered_dir }}/node-scrape-configs.yml \
+      --dry-run=client -o yaml | kubectl apply -f -
+  when: monitoring_apply_to_cluster | bool
+  changed_when: prometheus_config_rendered.changed

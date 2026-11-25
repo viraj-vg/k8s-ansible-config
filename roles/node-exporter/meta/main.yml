@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: node_exporter
+  author: Aditya-7788
+  description: Install and manage Prometheus node-exporter.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

@@ -1,0 +1,8 @@
+---
+alertmanager_slack_webhook_url: REPLACE_ME
+alertmanager_slack_channel: "#alerts"
+alertmanager_resolve_timeout: 5m
+monitoring_namespace: monitoring
+monitoring_apply_to_cluster: false
+prometheus_release_label: kube-prometheus-stack
+rendered_dir: "{{ playbook_dir }}/../rendered"

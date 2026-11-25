@@ -1,0 +1,4 @@
+---
+- name: Noop
+  ansible.builtin.debug:
+    msg: "No service restart: Alertmanager and Prometheus run in the cluster."

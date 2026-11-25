@@ -1,0 +1,4 @@
+---
+- name: Noop
+  ansible.builtin.debug:
+    msg: "No service restart: Prometheus runs in the cluster and reloads from the Secret."

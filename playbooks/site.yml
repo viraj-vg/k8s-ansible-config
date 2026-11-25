@@ -1,0 +1,16 @@
+---
+- name: Prepare and harden EKS worker nodes
+  hosts: kubernetes_nodes
+  become: true
+  roles:
+    - node-setup
+    - node-exporter
+
+- name: Render monitoring configuration from the live inventory
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  roles:
+    - prometheus-config
+    - alertmanager-config

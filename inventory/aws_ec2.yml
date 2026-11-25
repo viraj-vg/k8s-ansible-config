@@ -1,0 +1,13 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - ap-south-1
+filters:
+  instance-state-name: running
+  # EKS puts this tag on every worker node it creates
+  tag:eks:cluster-name: retail-store
+hostnames:
+  - instance-id
+compose:
+  ansible_host: instance_id
+groups:
+  kubernetes_nodes: "'eks:cluster-name' in tags"

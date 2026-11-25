@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: alertmanager_config
+  author: Aditya-7788
+  description: Render Slack receiver and node alerting configuration.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

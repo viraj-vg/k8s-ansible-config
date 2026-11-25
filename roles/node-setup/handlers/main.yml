@@ -1,0 +1,6 @@
+---
+- name: Restart ssh
+  # try-restart only acts if ssh is already running; nodes are managed via SSM,
+  # so this never starts an SSH service that was off.
+  ansible.builtin.command: systemctl try-restart ssh
+  changed_when: false

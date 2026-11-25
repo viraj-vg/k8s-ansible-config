@@ -1,0 +1,92 @@
+---
+- name: Ensure supported operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == "Ubuntu"
+      - ansible_distribution_version is version("22.04", ">=")
+    fail_msg: "node-setup supports Ubuntu 22.04 and newer."
+
+- name: Install host prerequisites
+  ansible.builtin.apt:
+    name: "{{ node_setup_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# EKS nodes get their firewalling from security groups. A host firewall
+# (ufw deny-all) can break kubelet and pod networking, so it is not used here.
+
+- name: Load kernel modules needed by Kubernetes networking
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: present
+  loop: "{{ node_setup_kernel_modules }}"
+
+- name: Set kernel parameters
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+  loop: "{{ node_setup_kernel_parameters }}"
+
+- name: Check whether sshd is installed
+  ansible.builtin.stat:
+    path: /usr/sbin/sshd
+  register: node_setup_sshd
+
+- name: Ensure sshd privilege-separation directory exists (needed to validate config)
+  ansible.builtin.file:
+    path: /run/sshd
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: node_setup_sshd.stat.exists
+
+- name: Install SSH hardening drop-in (only if sshd exists)
+  ansible.builtin.template:
+    src: ssh-hardening.conf.j2
+    dest: "{{ node_setup_ssh_dropin }}"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/sbin/sshd -t -f %s
+  when: node_setup_sshd.stat.exists
+  notify: Restart ssh
+
+- name: Enable unattended security upgrades
+  ansible.builtin.service:
+    name: unattended-upgrades
+    enabled: true
+    state: started
+
+# containerd is installed and configured by the EKS image / bootstrap.
+# Overwriting its config can stop the node from running pods, so only verify it.
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Verify containerd is running (managed by EKS, not changed here)
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.services['containerd.service'] is defined
+      - ansible_facts.services['containerd.service'].state == 'running'
+    fail_msg: "containerd is not running on this node."
+    success_msg: "containerd is running."
+
+- name: Find running kubelet units (unit name differs between images, e.g. snap)
+  ansible.builtin.set_fact:
+    node_setup_kubelet_units: >-
+      {{ ansible_facts.services | dict2items
+         | selectattr('key', 'search', 'kubelet')
+         | selectattr('value.state', 'equalto', 'running')
+         | map(attribute='key') | list }}
+
+- name: Verify kubelet is running
+  ansible.builtin.assert:
+    that:
+      - node_setup_kubelet_units | length > 0
+    fail_msg: "No running kubelet service found on this node."
+    success_msg: "kubelet is running ({{ node_setup_kubelet_units | join(', ') }})."

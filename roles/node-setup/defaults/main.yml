@@ -1,0 +1,16 @@
+---
+node_setup_ssh_dropin: /etc/ssh/sshd_config.d/01-ansible-hardening.conf
+node_setup_packages:
+  - unattended-upgrades
+  - ca-certificates
+  - curl
+node_setup_kernel_modules:
+  - br_netfilter
+  - overlay
+node_setup_kernel_parameters:
+  - name: net.ipv4.ip_forward
+    value: "1"
+  - name: net.bridge.bridge-nf-call-iptables
+    value: "1"
+  - name: net.bridge.bridge-nf-call-ip6tables
+    value: "1"

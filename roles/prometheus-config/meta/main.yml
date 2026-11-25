@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: prometheus_config
+  author: Aditya-7788
+  description: Render Prometheus file service-discovery targets.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

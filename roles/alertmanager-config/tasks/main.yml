@@ -1,0 +1,40 @@
+---
+- name: Create rendered output directory
+  ansible.builtin.file:
+    path: "{{ rendered_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Render Prometheus alert rules (PrometheusRule)
+  ansible.builtin.template:
+    src: alert-rules.yml.j2
+    dest: "{{ rendered_dir }}/alert-rules.yaml"
+    mode: "0644"
+  register: alertmanager_rules_rendered
+
+- name: Render Alertmanager config (contains the webhook, kept out of Git)
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: "{{ rendered_dir }}/alertmanager.yaml"
+    mode: "0600"
+  no_log: true
+  register: alertmanager_conf_rendered
+
+- name: Warn when the Slack webhook is still the placeholder
+  ansible.builtin.debug:
+    msg: "alertmanager_slack_webhook_url is a placeholder, so no Slack receiver is configured."
+  when: alertmanager_slack_webhook_url in ['', 'REPLACE_ME']
+
+- name: Apply alert rules to the cluster
+  ansible.builtin.command: kubectl apply -f {{ rendered_dir }}/alert-rules.yaml
+  when: monitoring_apply_to_cluster | bool
+  changed_when: alertmanager_rules_rendered.changed
+
+- name: Apply Alertmanager config as a Secret
+  ansible.builtin.shell: |
+    kubectl -n {{ monitoring_namespace }} create secret generic alertmanager-slack-config \
+      --from-file=alertmanager.yaml={{ rendered_dir }}/alertmanager.yaml \
+      --dry-run=client -o yaml | kubectl apply -f -
+  when: monitoring_apply_to_cluster | bool
+  no_log: true
+  changed_when: alertmanager_conf_rendered.changed

@@ -1,0 +1,8 @@
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+X11Forwarding no
+MaxAuthTries 4
+{% if node_setup_ssh_allow_users is defined %}
+AllowUsers {{ node_setup_ssh_allow_users | join(' ') }}
+{% endif %}
