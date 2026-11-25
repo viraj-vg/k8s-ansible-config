@@ -1,5 +1,6 @@
 # k8s-ansible-config
 
+<<<<<<< HEAD
 Ansible configuration for the EKS worker nodes (Ubuntu 24.04 managed node group).
 
 Based on a classmate's role layout; adapted for EKS: SSM connection, tag-based
@@ -48,3 +49,9 @@ Paste the result into `inventory/group_vars/all.yml` and run with `--ask-vault-p
 
 EKS: SSM connection, tag-based dynamic inventory, no host firewall,
 containerd/kubelet verification, and monitoring roles that render config for in-cluster Prometheus.
+=======
+Ansible roles for the EC2 worker nodes:
+node-setup, node-exporter, prometheus-config, alertmanager-config.
+
+Roles are added step by step.
+>>>>>>> d32697b5157c9acf96046cc47cd3deb388466ef6
